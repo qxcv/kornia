@@ -185,7 +185,9 @@ def _random_affine_gen(
         degrees: UnionFloat,
         translate: Optional[TupleFloat] = None,
         scale: Optional[TupleFloat] = None,
-        shear: Optional[UnionFloat] = None) -> Dict[str, torch.Tensor]:
+        shear: Optional[UnionFloat] = None,
+        flags: Optional[str] = None,
+        border_mode: Optional[str] = None) -> Dict[str, Union[str, torch.Tensor]]:
     # check angle ranges
     degrees_tmp: TupleFloat
     if isinstance(degrees, float):
@@ -229,7 +231,7 @@ def _random_affine_gen(
 
     transform: torch.Tensor = _get_random_affine_params(
         batch_size, height, width, degrees_tmp, translate, scale, shear_tmp)
-    return dict(transform=transform)
+    return dict(transform=transform, border_mode=border_mode, flags=flags)
 
 
 def _random_rotation_gen(batch_size: int, degrees: FloatUnionType) -> Dict[str, torch.Tensor]:

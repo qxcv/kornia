@@ -447,7 +447,10 @@ def _apply_affine(input: torch.Tensor,
     height, width = x_data.shape[-2:]
     transform: torch.Tensor = params['transform'].to(device, dtype)
 
-    out_data: torch.Tensor = warp_perspective(x_data, transform, (height, width))
+    flags: str = params.get('flags') or 'bilinear'
+    border_mode: str = params.get('border_mode') or 'zeros'
+    out_data: torch.Tensor = warp_perspective(
+        x_data, transform, (height, width), flags=flags, border_mode=border_mode)
 
     if return_transform:
         return out_data.view_as(input), transform

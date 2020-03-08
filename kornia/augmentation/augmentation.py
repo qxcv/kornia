@@ -309,6 +309,8 @@ class RandomAffine(AugmentationBase):
                 range (shear[0], shear[1]) will be applied. Else if shear is a tuple or list of 4 values,
                 a x-axis shear in (shear[0], shear[1]) and y-axis shear in (shear[2], shear[3]) will be applied.
                 Will not apply shear by default
+            flags (str, optional): flags to pass to ``warp_perspective``.
+            border_mode (str, optional): border-handling mode for ``warp_perspective``.
             return_transform (bool): if ``True`` return the matrix describing the transformation
                 applied to each. Default: False.
 
@@ -323,14 +325,18 @@ class RandomAffine(AugmentationBase):
                  translate: Optional[TupleFloat] = None,
                  scale: Optional[TupleFloat] = None,
                  shear: Optional[UnionFloat] = None,
+                 flags: Optional[str] = None,
+                 border_mode: Optional[str] = None,
                  return_transform: bool = False) -> None:
         super(RandomAffine, self).__init__(F._apply_affine, return_transform)
         self.degrees = degrees
         self.translate = translate
         self.scale = scale
         self.shear = shear
+        self.flags = flags
+        self.border_mode = border_mode
         self.return_transform = return_transform
-        self._params: Dict[str, torch.Tensor] = {}
+        self._params: Dict[str, Union[str, torch.Tensor]] = {}
 
     def set_params(self, batch_size: int,
                    height: int,
@@ -338,14 +344,19 @@ class RandomAffine(AugmentationBase):
                    degrees: UnionFloat,
                    translate: Optional[TupleFloat] = None,
                    scale: Optional[TupleFloat] = None,
-                   shear: Optional[UnionFloat] = None):
-        self._params = pg._random_affine_gen(batch_size, height, width, degrees, translate, scale, shear)
+                   shear: Optional[UnionFloat] = None,
+                   flags: Optional[str] = None,
+                   border_mode: Optional[str] = None):
+        self._params = pg._random_affine_gen(
+            batch_size, height, width, degrees, translate, scale, shear, flags, border_mode)
 
     def forward(self, input: UnionType, params: Optional[Dict[str, torch.Tensor]] = None) -> UnionType:  # type: ignore
         if params is None:
             height, width = self.infer_image_shape(input)
             batch_size: int = self.infer_batch_size(input)
-            self.set_params(batch_size, height, width, self.degrees, self.translate, self.scale, self.shear)
+            self.set_params(
+                batch_size, height, width, self.degrees, self.translate,
+                self.scale, self.shear, self.flags, self.border_mode)
         return super().forward(input, self._params)
 
 
