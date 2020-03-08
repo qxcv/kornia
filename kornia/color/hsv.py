@@ -159,5 +159,8 @@ def rgb_to_hsv(image: torch.Tensor) -> torch.Tensor:
 
     h = (h / 6.0) % 1.0
 
-    h = 2 * pi * h
+    # Super spooky bug: this sometimes causes CUDA invalid memory access errors
+    # if I don't put the .item() around it. Might have something to do with
+    # layout of h & fact that h is on GPU while pi is on CPU?
+    h = (2 * pi).item() * h
     return torch.stack([h, s, v], dim=-3)
